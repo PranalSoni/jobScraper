@@ -54,10 +54,17 @@ try:
         d['Minimum qualifications'].append(min_quals_text)
         d['link'].append(link)
 
-    #Code for SQLite Database
+    # Code for SQLite Database
     con = None
+    
+    # Path logic for Render's persistent disk
+    DB_PATH = "data.db"
+    
+    # If running on Render, save database to the mounted disk path
+    if os.path.exists("/opt/render/project/src/data_storage"):
+        DB_PATH = "/opt/render/project/src/data_storage/data.db"
 
-    con = connect("data.db")
+    con = connect(DB_PATH)
     print("DB created/Opened!")
     cursor = con.cursor()
 
