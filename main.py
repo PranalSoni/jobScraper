@@ -18,32 +18,37 @@ try:
             html_doc = f.read()
         soup = BeautifulSoup(html_doc, "html.parser")
 
-        #Code to fetch title from HTML
-        t = soup.find("h3")
-        title = t.get_text()
+        # NEW: each file may contain multiple jobs
+    job_blocks = soup.select("article.job") or [soup]  # fallback: treat whole doc as one job
 
-        #Code to fetch Minimum qualifications from HTML
-        header = soup.find("h4", string=lambda s: s and s.strip() == "Minimum qualifications")
+    for block in job_blocks:
+        # title
+        t = block.find("h3")
+        title = t.get_text(strip=True) if t else ""
+
+        # minimum qualifications
+        header = block.find("h4", string=lambda s: s and s.strip() == "Minimum qualifications")
         ul = header.find_next("ul") if header else None
 
-        min_quals = []
-        if ul:
-            min_quals = [li.get_text(" ", strip=True) for li in ul.find_all("li")]
-
-        # to get minimum qualifications as one text blob:
+        min_quals = [li.get_text(" ", strip=True) for li in ul.find_all("li")] if ul else []
         min_quals_text = "\n".join(f"- {q}" for q in min_quals)
-        print(min_quals_text)
 
-        #Code to fetch location from HTML
-        container = soup.select_one("span.pwO9Dc")
-        unique_locs = [s.get_text(strip=True).lstrip("; ").strip()
-                for s in container.select("span.r0wTof")]
-        location = ", ".join(unique_locs)
+        # location (safe if missing)
+        container = block.select_one("span.pwO9Dc")
+        if container:
+            unique_locs = [
+                s.get_text(strip=True).lstrip("; ").strip()
+                for s in container.select("span.r0wTof")
+            ]
+            unique_locs = [x for x in unique_locs if x]
+            location = ", ".join(unique_locs)
+        else:
+            location = ""
 
-        #Code to fetch link from HTML
-        a_tag = soup.find("a", class_="WpHeLc")
-        link = "https://www.google.com/about/careers/applications/" + a_tag["href"]
-        
+        # link (NOT Google-specific)
+        a_tag = block.find("a", class_="WpHeLc")
+        link = a_tag["href"].strip() if a_tag and a_tag.has_attr("href") else ""
+
         d['title'].append(title)
         d['location'].append(location)
         d['Minimum qualifications'].append(min_quals_text)
