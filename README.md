@@ -24,7 +24,7 @@ An intelligent, fully automated web scraper that leverages Selenium and Google's
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/jobScraper.git
+git clone https://github.com/PranalSoni/jobScraper.git
 cd jobScraper
 ```
 
